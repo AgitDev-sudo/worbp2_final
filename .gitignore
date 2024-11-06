@@ -1,6 +1,12 @@
 # Created by https://www.toptal.com/developers/gitignore/api/c++,ros2,python,visualstudiocode,cmake
 # Edit at https://www.toptal.com/developers/gitignore?templates=c++,ros2,python,visualstudiocode,cmake
 
+### Custom ###
+
+build/
+install/
+log/
+
 ### C++ ###
 # Prerequisites
 *.d
