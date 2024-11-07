@@ -14,6 +14,10 @@ find_package(tf2_ros REQUIRED)
 find_package(urdf REQUIRED)
 find_package(sensor_msgs REQUIRED)
 
+install(
+  DIRECTORY launch rviz urdf
+  DESTINATION share/${PROJECT_NAME}
+)
 #Later
 # install(
 #   DIRECTORY launch rviz urdf
@@ -28,7 +32,7 @@ $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}>
 $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
                                         
 # nog urdf toevoegen?
-ament_target_dependencies(virtual_servo_controller_node rclcpp std_msgs sensor_msgs)
+ament_target_dependencies(virtual_servo_controller_node rclcpp std_msgs urdf sensor_msgs)
 
 install(TARGETS 
   virtual_servo_controller_node
