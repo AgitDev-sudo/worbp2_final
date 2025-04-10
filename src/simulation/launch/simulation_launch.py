@@ -10,6 +10,7 @@ def generate_launch_description():
     use_sim_time = LaunchConfiguration('use_sim_time', default='false')
 
     urdf_file_name_robot = 'urdf/lynxmotion_arm.urdf'
+    rviz_config_name = 'rviz/urdf.rviz'
 
     robot_urdf = os.path.join(
         get_package_share_directory('simulation'),
@@ -17,13 +18,16 @@ def generate_launch_description():
     with open(robot_urdf, 'r') as infp:
         robot_desc = infp.read()
 
+    rviz_config = os.path.join(
+        get_package_share_directory('simulation'),
+        rviz_config_name)
 
 
     virtual_servo_controller_node = Node(
             package='simulation',
             executable='virtual_servo_controller_node',
             name='virtual_servo_controller_node',
-            parameters=[{'robot_description': robot_desc}],
+            parameters=[{'robot_description_file': robot_urdf}]
             # output='screen',
             # arguments=['--ros-args', '--log-level', 'ERROR']
 
@@ -35,13 +39,20 @@ def generate_launch_description():
             parameters=[{'use_sim_time': use_sim_time, 'robot_description': robot_desc}],
             arguments=[robot_urdf],
         )
-    
+    rviz_node = Node(
+            package='rviz2',
+            executable='rviz2',
+            name='rviz2',
+            output='screen',
+            arguments=['-d', str(rviz_config)],
+        )
     return LaunchDescription([
         DeclareLaunchArgument(
             'use_sim_time',
             default_value='false',
             description='Use simulation (Gazebo) clock if true'
         ),
-        robot_state_publisher_node,
         virtual_servo_controller_node,
+        robot_state_publisher_node,
+        rviz_node,
     ])

@@ -19,7 +19,7 @@ public:
 
 private:
     void commandCallback(const std_msgs::msg::String msg);
-    void initJointStates();
+    bool initJointStates(const std::string& urdf_file);
     void publishJointStates();
 
     rclcpp::Subscription<std_msgs::msg::String>::SharedPtr ssc32u_messages_;

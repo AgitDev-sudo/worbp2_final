@@ -10,6 +10,7 @@ constexpr double_t JOINT_STATE_PUBLISHER_RATE_MS = (PULSE_WIDTH_RATE_US/1000);
 constexpr const char* DEFAULT_NODE_NAME = "virtual_servo_controller";
 constexpr const char* DEFAULT_TOPIC_NAME_SUB = "ssc32u_command";
 constexpr const char* DEFAULT_TOPIC_NAME_PUB = "joint_states";
+constexpr const char* DEFAULT_ROBOT_URDF_FILE_PARAM_NAME = "robot_description_file";
 
 VirtualServoController::VirtualServoController() : 
 rclcpp::Node(DEFAULT_NODE_NAME),
@@ -19,7 +20,12 @@ rclcpp::Node(DEFAULT_NODE_NAME),
   joint_state_pub_timer_(create_wall_timer(std::chrono::milliseconds(static_cast<int64_t>(JOINT_STATE_PUBLISHER_RATE_MS)), std::bind(&VirtualServoController::publishJointStates, this)))
 
 {
-    initJointStates();
+    this->declare_parameter<std::string>(DEFAULT_ROBOT_URDF_FILE_PARAM_NAME, "");
+
+    if(!initJointStates(this->get_parameter(DEFAULT_ROBOT_URDF_FILE_PARAM_NAME).as_string()))
+    {
+        RCLCPP_ERROR(this->get_logger(), "Failed to initialize joint states, the visualization will not be correct");
+    }
 }
 
 VirtualServoController::~VirtualServoController()
@@ -31,16 +37,14 @@ void VirtualServoController::commandCallback(const std_msgs::msg::String msg)
 
 }
 
-void VirtualServoController::initJointStates()
+bool VirtualServoController::initJointStates(const std::string& urdf_file)
 {
     urdf::Model model;
 
-    const std::string urdf_content = this->declare_parameter<std::string>("robot_description");
-
-    if (!model.initString(urdf_content))
+    if (!model.initFile(urdf_file))
     {
         RCLCPP_ERROR(this->get_logger(), "Failed to parse URDF");
-        return;
+        return false;
     }
 
     for (auto &joint : model.joints_)
@@ -50,6 +54,13 @@ void VirtualServoController::initJointStates()
         joints.insert(std::pair<std::string, double>(joint.first, 0));
     }
 
+    if(servoNrToJoints.size() != joints.size())
+    {
+        RCLCPP_ERROR(this->get_logger(), "The number of joints in the URDF file does not match the number of servos");
+        return false;
+    }
+
+    return true;
 }
 
 void VirtualServoController::publishJointStates()
@@ -67,6 +78,6 @@ void VirtualServoController::publishJointStates()
         msg->name.push_back(jointName);
         msg->position.push_back(jointPos);
     }
-    //this->jointStatePub->publish(std::move(msg));
+    joint_state_pub_->publish(std::move(msg));
 }
 
