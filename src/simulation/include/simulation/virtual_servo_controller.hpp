@@ -10,20 +10,54 @@
 #include "rclcpp/rclcpp.hpp"
 #include <std_msgs/msg/string.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
+#include <atomic>
+
+struct ActiveMotion {
+    std::thread thread;
+    std::atomic_bool stop_requested{false};
+    std::atomic_bool is_moving{false};
+
+
+    ActiveMotion() = default;
+
+    // Custom move constructor
+    ActiveMotion(ActiveMotion&& other) noexcept
+        : thread(std::move(other.thread)),
+          stop_requested(other.stop_requested.load())
+    {}
+
+    // Custom move assignment
+    ActiveMotion& operator=(ActiveMotion&& other) noexcept {
+        if (this != &other) {
+            if (thread.joinable()) thread.join();
+            thread = std::move(other.thread);
+            stop_requested.store(other.stop_requested.load());
+        }
+        return *this;
+    }
+
+    ActiveMotion(const ActiveMotion&) = delete;
+    ActiveMotion& operator=(const ActiveMotion&) = delete;
+};
 
 class VirtualServoController :  public rclcpp::Node
 {
+
 public:
     VirtualServoController();  
     ~VirtualServoController();
 
 private:
+
     void commandCallback(const std_msgs::msg::String msg);
     bool initJointStates(const std::string& urdf_file);
     void publishJointStates();
     void setDesiredJointState(uint8_t servo_nr, double target_rad, double time_ms);
     double pwmToRad(uint8_t servo_pin, uint16_t pwm) const;
     double calculateMoveDurationMsRadial(uint8_t servo_pin, double current_rad, double target_rad, uint16_t speed_us_per_s) const;
+    void stopServo(uint8_t servo_pin);
+    void stopAllServos();
+    bool isArmMoving();
 
     rclcpp::Subscription<std_msgs::msg::String>::SharedPtr ssc32u_request_messages_;
     rclcpp::Publisher<std_msgs::msg::String>::SharedPtr ssc32u_response_messages_;
@@ -32,7 +66,7 @@ private:
 
     //name of joint and it's position in rad.
     std::map<std::string, double> joints;
-    std::vector<std::thread> moving_joint_threads_;
+    std::map<uint8_t, ActiveMotion> moving_joint_threads_;  // key = servo_nr
 
     const std::map<uint8_t, std::string> servo_to_joints =
     {

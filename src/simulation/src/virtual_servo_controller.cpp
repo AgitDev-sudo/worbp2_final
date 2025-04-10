@@ -88,7 +88,7 @@ void VirtualServoController::commandCallback(const std_msgs::msg::String msg)
             auto msg = std::make_unique<std_msgs::msg::String>();
             msg->data = "+"; // move is still in progress
 
-            if(moving_joint_threads_.empty()) {
+            if(!isArmMoving()) {
                 msg->data = "."; // move is complete / not moving
             }
 
@@ -184,26 +184,41 @@ void VirtualServoController::publishJointStates()
 }
 
 void VirtualServoController::setDesiredJointState(uint8_t servo_nr, double target_rad, double time_ms) {
+    stopServo(servo_nr); // Stop any existing motion for this servo
     double difference = target_rad - this->joints.at(this->servo_to_joints.at(servo_nr));
     double step = 0;
-    if (time_ms != 0) {
+    if (time_ms != 0 ) {
         step = difference / time_ms;
     } else {
         this->joints.at(this->servo_to_joints.at(servo_nr)) = target_rad;
         return;
     }
     
+    ActiveMotion motion;
+    motion.stop_requested = false;
+    motion.is_moving = false;
+
     auto sendJointFunc = [this](double step, uint8_t servo_nr, double end_pos, uint16_t time_in_ms) {
+        moving_joint_threads_[servo_nr].is_moving = true;
         for (int i = 0; i < time_in_ms; i++) {
+            if (moving_joint_threads_[servo_nr].stop_requested) {
+                end_pos = this->joints.at(this->servo_to_joints.at(servo_nr));
+                break;
+            }
             this->joints.at(this->servo_to_joints.at(servo_nr)) += step;
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
+        
         this->joints.at(this->servo_to_joints.at(servo_nr)) = end_pos;
+        moving_joint_threads_[servo_nr].is_moving = false;
     };
 
     std::thread t(sendJointFunc, step, servo_nr, target_rad, static_cast<uint16_t>(time_ms));
 
-    moving_joint_threads_.push_back(std::move(t));
+    motion.thread = std::move(t);
+
+    moving_joint_threads_[servo_nr] = std::move(motion);
+
 }
 
 
@@ -253,24 +268,41 @@ double VirtualServoController::calculateMoveDurationMsRadial(uint8_t servo_pin, 
     return (distance_rad / rad_per_sec) * 1000.0;
 }
 
+void VirtualServoController::stopServo(uint8_t servo_nr) {
+    auto it = moving_joint_threads_.find(servo_nr);
+    if (it != moving_joint_threads_.end()) {
+        it->second.stop_requested = true;
+        if (it->second.thread.joinable()) {
+            it->second.thread.join();
+        }
+        moving_joint_threads_.erase(it);
+    }
+}
+
+void VirtualServoController::stopAllServos() {
+    for (auto& [servo_nr, motion] : moving_joint_threads_) {
+        motion.stop_requested = true;
+    }
+
+    for (auto& [servo_nr, motion] : moving_joint_threads_) {
+        if (motion.thread.joinable()) {
+            motion.thread.join();
+        }
+    }
+
+    moving_joint_threads_.clear();
+}
+
+bool VirtualServoController::isArmMoving() {
+    for (const auto& [servo_nr, motion] : moving_joint_threads_) {
+        if (motion.is_moving) {
+            return true;
+        }
+    }
+    return false;
+}
 
 
-// double VirtualServoController::pwmToRad(uint8_t servo_nr, uint16_t pulse_width)
-// {
-//     auto it = servo_pwm_limits_.find(servo_nr);
-//     if(it != servo_pwm_limits_.end())
-//     {
-//         if(pulse_width < it->second.first || pulse_width > it->second.second) {
-//             RCLCPP_WARN(this->get_logger(), "Pulse width %d is out of range for servo %d, clamping to [%d, %d]", pulse_width, servo_nr, it->second.first, it->second.second);
-//             pulse_width = std::clamp(pulse_width, it->second.first, it->second.second);
-//         }
-//         double rad = (pulse_width - it->second.first) * M_PI / (it->second.second - it->second.first);
-//         return rad;
-//     } else
-//     {
-//         RCLCPP_ERROR(this->get_logger(), "Servo pin %d not found in the map", servo_nr);
-//         return 0.0;
-//     }
-// }
+
 
 
