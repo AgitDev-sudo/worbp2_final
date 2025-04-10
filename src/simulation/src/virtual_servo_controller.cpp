@@ -98,20 +98,27 @@ void VirtualServoController::commandCallback(const std_msgs::msg::String msg)
         }
         case ssc32u::SSC32UCommandType::EMERGENCY_STOP:
         {
-
+            stopAllServos();
             break;
         }
         case ssc32u::SSC32UCommandType::STOP_SERVO:
         {
-            // auto servo_pin = parsed_command.stop_pin_.value();
-            // auto it = servo_to_joints.find(servo_pin);
-            // if(it != servo_to_joints.end()) {
-            //     RCLCPP_INFO(this->get_logger(), "Stopping servo %d", servo_pin);
-            //     //stop the thread
-            //     moving_joint_threads_[servo_pin].detach();
-            // } else {
-            //     RCLCPP_ERROR(this->get_logger(), "Servo pin %d not found in the map", servo_pin);
-            // }
+            if(parsed_command.stop_pin_.has_value())
+            {
+                auto it = moving_joint_threads_.find(*parsed_command.stop_pin_);
+                if(it != moving_joint_threads_.end())
+                {
+                    stopServo(*parsed_command.stop_pin_);
+                }
+                else
+                {
+                    RCLCPP_ERROR(this->get_logger(), "Servo %d is already not moving, redundant call", *parsed_command.stop_pin_);
+                }
+            }
+            else
+            {
+                RCLCPP_ERROR(this->get_logger(), "Stop pin not found in the command");
+            }
             break;
         }
         case ssc32u::SSC32UCommandType::UNKNOWN:
@@ -272,6 +279,7 @@ void VirtualServoController::stopServo(uint8_t servo_nr) {
     auto it = moving_joint_threads_.find(servo_nr);
     if (it != moving_joint_threads_.end()) {
         it->second.stop_requested = true;
+        while(it->second.is_moving) {}
         if (it->second.thread.joinable()) {
             it->second.thread.join();
         }
@@ -285,6 +293,7 @@ void VirtualServoController::stopAllServos() {
     }
 
     for (auto& [servo_nr, motion] : moving_joint_threads_) {
+        while(motion.is_moving) {}
         if (motion.thread.joinable()) {
             motion.thread.join();
         }
