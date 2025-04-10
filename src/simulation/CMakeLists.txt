@@ -24,8 +24,8 @@ install(
 #   DESTINATION share/${PROJECT_NAME}
 # )
 
-add_executable(virtual_servo_controller_node src/virtual_servo_controller_node.cpp 
-                                        src/virtual_servo_controller.cpp)
+add_executable(virtual_servo_controller_node src/virtual_servo_controller_node.cpp src/virtual_servo_controller.cpp src/ssc32u_command_parser.cpp )
+                                        
 
 target_include_directories(virtual_servo_controller_node PUBLIC
 $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}>

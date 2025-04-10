@@ -21,15 +21,20 @@ private:
     void commandCallback(const std_msgs::msg::String msg);
     bool initJointStates(const std::string& urdf_file);
     void publishJointStates();
+    void setDesiredJointState(uint8_t servo_nr, double target_rad, double time_ms);
+    double pwmToRad(uint8_t servo_pin, uint16_t pwm) const;
+    double calculateMoveDurationMsRadial(uint8_t servo_pin, double current_rad, double target_rad, uint16_t speed_us_per_s) const;
 
-    rclcpp::Subscription<std_msgs::msg::String>::SharedPtr ssc32u_messages_;
+    rclcpp::Subscription<std_msgs::msg::String>::SharedPtr ssc32u_request_messages_;
+    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr ssc32u_response_messages_;
     rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_state_pub_;
     rclcpp::TimerBase::SharedPtr joint_state_pub_timer_;
 
     //name of joint and it's position in rad.
     std::map<std::string, double> joints;
+    std::vector<std::thread> moving_joint_threads_;
 
-    const std::map<uint8_t, std::string> servoNrToJoints =
+    const std::map<uint8_t, std::string> servo_to_joints =
     {
         {0, "base_link2turret"},
         {1, "turret2upperarm"},
@@ -38,6 +43,18 @@ private:
         {4, "wrist2hand"},
         {5, "gripper_left2hand"},
         {6, "gripper_right2hand"}
+    };
+
+    //<servo_pin, <min_pwm, max_pwm>>
+    const std::map<uint8_t, std::pair<uint16_t, uint16_t>> servo_pwm_limits_ =
+    {
+        {0, {500, 2500}}, //600, 2400
+        {1, {700, 2300}},
+        {2, {600, 2400}},
+        {3, {700, 2300}},
+        {4, {700, 2300}},
+        {5, {700, 2300}},
+        {6, {700, 2300}}
     };
 
 };
