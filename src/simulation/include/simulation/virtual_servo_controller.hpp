@@ -7,7 +7,7 @@
 #ifndef SIMULATION_VIRTUALSERVOCONTROLLER_HPP
 #define SIMULATION_VIRTUALSERVOCONTROLLER_HPP
 
-#include "rclcpp/rclcpp.hpp"
+#include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/string.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
 #include <atomic>
@@ -82,13 +82,20 @@ private:
     //<servo_pin, <min_pwm, max_pwm>>
     const std::map<uint8_t, std::pair<uint16_t, uint16_t>> servo_pwm_limits_ =
     {
-        {0, {500, 2500}}, //600, 2400
-        {1, {700, 2300}},
-        {2, {600, 2400}},
-        {3, {700, 2300}},
-        {4, {700, 2300}},
-        {5, {700, 2300}},
-        {6, {700, 2300}}
+        {0, {500,2500}},
+        {1, {500,2500}},
+        {2, {500,2500}},
+        {3, {500,2500}},
+        {4, {500,2500}},
+        {5, {500,2500}},
+        {6, {500,2500}}
+        // {0, {600, 2400}},
+        // {1, {700, 2300}},
+        // {2, {600, 2400}},
+        // {3, {700, 2300}},
+        // {4, {700, 2300}},
+        // {5, {700, 2300}},
+        // {6, {700, 2300}}
     };
 
 };

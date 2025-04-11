@@ -1,3 +1,9 @@
+/*
+ * ssc32_command_parser.hpp
+ *
+ *      Author: agit
+ */
+
 #ifndef INCLUDE_SIMULATION_SSC32U_COMMAND_PARSER_HPP_
 #define INCLUDE_SIMULATION_SSC32U_COMMAND_PARSER_HPP_
 #include <string>

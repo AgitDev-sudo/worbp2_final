@@ -18,24 +18,27 @@ install(
   DIRECTORY launch rviz urdf
   DESTINATION share/${PROJECT_NAME}
 )
-#Later
-# install(
-#   DIRECTORY launch rviz urdf
-#   DESTINATION share/${PROJECT_NAME}
-# )
 
-add_executable(virtual_servo_controller_node src/virtual_servo_controller_node.cpp src/virtual_servo_controller.cpp src/ssc32u_command_parser.cpp )
+add_executable(virtual_servo_controller_node src/virtual_servo_controller_node.cpp src/virtual_servo_controller.cpp src/ssc32u_command_parser.cpp)
+add_executable(cup_node src/cup_node.cpp src/cup.cpp)
                                         
 
 target_include_directories(virtual_servo_controller_node PUBLIC
 $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}>
 $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
                                         
-# nog urdf toevoegen?
 ament_target_dependencies(virtual_servo_controller_node rclcpp std_msgs urdf sensor_msgs)
+
+target_include_directories(cup_node PUBLIC
+$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}>
+$<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
+
+ament_target_dependencies(cup_node rclcpp std_msgs urdf sensor_msgs geometry_msgs tf2_ros)
+
 
 install(TARGETS 
   virtual_servo_controller_node
+  cup_node
   DESTINATION lib/${PROJECT_NAME}
   )
 

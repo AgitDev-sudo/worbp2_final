@@ -1,0 +1,12 @@
+<robot name="myfirst">
+  <link name="cup">
+    <visual>
+      <geometry>
+        <cylinder length="0.1" radius="0.02"/>
+      </geometry>
+      <material name="red">
+        <color rgba="1 0 0 1" />
+      </material>
+    </visual>
+  </link>
+</robot>
