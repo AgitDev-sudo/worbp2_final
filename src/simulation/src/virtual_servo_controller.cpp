@@ -44,6 +44,11 @@ void VirtualServoController::commandCallback(const std_msgs::msg::String msg)
         {
             
             auto servo = parsed_command.servos_[0];
+            if(servo.pin_ == 6)
+            {
+                RCLCPP_ERROR(this->get_logger(), "Servo pin 6 is not supported");
+                break;
+            }
             auto it = servo_to_joints.find(servo.pin_);
             RCLCPP_INFO(this->get_logger(), "Got command for servo %d, pulse width %d", servo.pin_, servo.pulse_width_);
             if(it != servo_to_joints.end()) {
@@ -69,6 +74,10 @@ void VirtualServoController::commandCallback(const std_msgs::msg::String msg)
                 if (time > 0) {
                     RCLCPP_INFO(this->get_logger(), "Moving servo %d to %f rad in %f ms", servo.pin_, desired_rad, time);
                     setDesiredJointState(servo.pin_, desired_rad, time);
+                    if(servo.pin_ == 5) //servo pin 5 should also move both left and right gripper in one command.
+                    {
+                        setDesiredJointState(servo.pin_+1, desired_rad, time); //also move the other gripper
+                    }
                 } else {
                     RCLCPP_WARN(this->get_logger(), "Time is zero, ignoring it. Currently not supported");
                 }
@@ -109,6 +118,10 @@ void VirtualServoController::commandCallback(const std_msgs::msg::String msg)
                 if(it != moving_joint_threads_.end())
                 {
                     stopServo(*parsed_command.stop_pin_);
+                    if(*parsed_command.stop_pin_ == 5) //servo pin 5 should stop both left and right gripper in one command.
+                    {
+                        stopServo(*parsed_command.stop_pin_+1); //also stop the other gripper
+                    }
                 }
                 else
                 {

@@ -53,7 +53,14 @@ def generate_launch_description():
             package='simulation',
             executable='cup_node',
             name='cup_node',
-            parameters=[{'use_sim_time': use_sim_time, 'cup_desc': cup_desc}]
+            parameters=[{'use_sim_time': use_sim_time,
+                         'cup_pose.x': 0.45,
+                         'cup_pose.y': 0.0,
+                         'cup_pose.z': 0.05,
+                         'cup_pose.roll': 0.0,
+                         'cup_pose.pitch': 0.0,
+                         'cup_pose.yaw': 0.0,
+                         'cup_desc': cup_desc}]
 
         )
     rviz_node = Node(

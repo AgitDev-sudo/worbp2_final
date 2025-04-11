@@ -110,8 +110,7 @@ ros2 topic pub --once /ssc32u_command std_msgs/msg/String "{data: \"#3 P1800 T20
 sleep 2.1
 
 echo "[2/6] Gripper sluiten (bekertje vastpakken)"
-ros2 topic pub --once /ssc32u_command std_msgs/msg/String "{data: \"#5 P1507 T2000\r\"}"  # gripper links
-ros2 topic pub --once /ssc32u_command std_msgs/msg/String "{data: \"#6 P1507 T2000\r\"}"  # gripper rechts
+ros2 topic pub --once /ssc32u_command std_msgs/msg/String "{data: \"#5 P1507 T2000\r\"}"  # gripper
 sleep 2.1
 
 echo "[3/6] Arm terug naar neutrale stand (kopje blijft rechtop)"
@@ -129,7 +128,6 @@ sleep 1.1
 
 echo "[5/6] Gripper openen (kopje loslaten)"
 ros2 topic pub --once /ssc32u_command std_msgs/msg/String "{data: \"#5 P1500 T1000\r\"}"   # gripper open
-ros2 topic pub --once /ssc32u_command std_msgs/msg/String "{data: \"#6 P1500 T1000\r\"}"
 sleep 1.1
 
 echo "[6/6] Sequence afgerond!"

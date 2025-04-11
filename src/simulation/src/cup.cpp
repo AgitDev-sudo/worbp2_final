@@ -17,14 +17,25 @@ Cup::Cup(): Node(DEFAULT_NODE_NAME) ,
     qos_profile.transient_local();  // zorgt dat late subscribers alsnog de laatste message krijgen
     description_pub_ = this->create_publisher<std_msgs::msg::String>("cup_description", qos_profile);
 
+    this->declare_parameter("cup_pose.x", 0.45);
+    this->declare_parameter("cup_pose.y", 0.0);
+    this->declare_parameter("cup_pose.z", 0.05);
+    this->declare_parameter("cup_pose.roll", 0.0);
+    this->declare_parameter("cup_pose.pitch", 0.0);
+    this->declare_parameter("cup_pose.yaw", 0.0);
+
     current_transform_.header.frame_id = "base_link";
     current_transform_.child_frame_id = "cup";
-    current_transform_.transform.translation.x = 0.45;
-    current_transform_.transform.translation.y = 0.0;
-    current_transform_.transform.translation.z = 0.05;
-    current_transform_.transform.rotation.x = 0.0;
-    current_transform_.transform.rotation.y = 0.0;
-    current_transform_.transform.rotation.z = 0.0;
+    current_transform_.transform.translation.x = this->get_parameter("cup_pose.x").as_double();
+    current_transform_.transform.translation.y = this->get_parameter("cup_pose.y").as_double();
+    current_transform_.transform.translation.z = this->get_parameter("cup_pose.z").as_double();
+
+    tf2::Quaternion q;
+    q.setRPY(this->get_parameter("cup_pose.roll").as_double(), this->get_parameter("cup_pose.pitch").as_double(), this->get_parameter("cup_pose.yaw").as_double());
+    current_transform_.transform.rotation.x = q.x();
+    current_transform_.transform.rotation.y = q.y();
+    current_transform_.transform.rotation.z = q.z();
+    current_transform_.transform.rotation.w = q.w();
 
   
     tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(this);
@@ -37,14 +48,13 @@ Cup::~Cup()
     RCLCPP_INFO(this->get_logger(), "Cup node destroyed");
 }
 
-bool Cup::initCup(const std::string& urdf_content)
+void Cup::initCup(const std::string& urdf_content)
 {
     auto msg = std::make_unique<std_msgs::msg::String>();
 
     msg->data = urdf_content;
 
     description_pub_->publish(std::move(msg));
-    return true; // Return true if initialization is successful
 }
 // void Cup::setCupPosition(double x, double y, double z)
 // {

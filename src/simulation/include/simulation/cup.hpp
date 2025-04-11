@@ -19,11 +19,9 @@ public:
     Cup();
     ~Cup();
 private:
-    bool initCup(const std::string& urdf_content);
-    //void setCupPosition(double x, double y, double z);
+    void initCup(const std::string& urdf_content);
     void publishCup();
     void updatePos(const geometry_msgs::msg::TransformStamped::SharedPtr msg);
-
     void cupIsHeldCb();
 
     rclcpp::TimerBase::SharedPtr cup_publish_timer_;
