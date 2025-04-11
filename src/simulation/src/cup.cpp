@@ -1,9 +1,10 @@
 #include "cup.hpp"
-
+#include <regex>
 constexpr const char* DEFAULT_NODE_NAME = "cup";
 constexpr const char* DEFAULT_CUP_DESC_PARAM_NAME = "cup_desc";
 
 Cup::Cup(): Node(DEFAULT_NODE_NAME) ,
+    cup_is_held_(false),
     cup_publish_timer_(this->create_wall_timer(std::chrono::milliseconds(10), std::bind(&Cup::publishCup, this))),
     cup_pos_sub_(this->create_subscription<geometry_msgs::msg::TransformStamped>("picked_up_cup", 10, std::bind(&Cup::updatePos, this, std::placeholders::_1))),
     speed_factor_(1),
@@ -56,11 +57,6 @@ void Cup::initCup(const std::string& urdf_content)
 
     description_pub_->publish(std::move(msg));
 }
-// void Cup::setCupPosition(double x, double y, double z)
-// {
-//     // Set the position of the cup in 3D space
-//     RCLCPP_INFO(this->get_logger(), "Setting cup position to: x=%f, y=%f, z=%f", x, y, z);
-// }
 
 void Cup::publishCup() 
 {
@@ -92,10 +88,11 @@ void Cup::cupIsHeldCb() {
     {
         geometry_msgs::msg::TransformStamped transform_gripper_left = tf_buffer_->lookupTransform("gripper_left", "cup", tf2::TimePointZero);
         geometry_msgs::msg::TransformStamped transform_gripper_right = tf_buffer_->lookupTransform("gripper_right", "cup", tf2::TimePointZero);
-        geometry_msgs::msg::TransformStamped transformHand = tf_buffer_->lookupTransform("hand", "cup", tf2::TimePointZero);
+        geometry_msgs::msg::TransformStamped transform_hand = tf_buffer_->lookupTransform("hand", "cup", tf2::TimePointZero);
 
-        RCLCPP_INFO(this->get_logger(), "Gripper left: x: %f, y: %f, z: %f", transform_gripper_left.transform.translation.x, transform_gripper_left.transform.translation.y, transform_gripper_left.transform.translation.z);
-        if (
+        //RCLCPP_INFO(this->get_logger(), "Gripper left: x: %f, y: %f, z: %f", transform_gripper_left.transform.translation.x, transform_gripper_left.transform.translation.y, transform_gripper_left.transform.translation.z);
+        
+        bool is_held_now =
             transform_gripper_left.transform.translation.x < -0.006 &&
             transform_gripper_left.transform.translation.x > -0.007 &&
             transform_gripper_left.transform.translation.y < -0.01 &&
@@ -107,16 +104,35 @@ void Cup::cupIsHeldCb() {
             transform_gripper_right.transform.translation.y < 0.015 &&
             transform_gripper_right.transform.translation.y > 0.01 &&
             transform_gripper_right.transform.translation.z < 0.022 &&
-            transform_gripper_right.transform.translation.z > 0.02
-        ) {
-            msg = transformHand;
-        } else {
-            msg = tf_buffer_->lookupTransform("base_link", "cup", tf2::TimePointZero);
-        }
+            transform_gripper_right.transform.translation.z > 0.02;
+
+        geometry_msgs::msg::TransformStamped msg = is_held_now
+            ? transform_hand
+            : tf_buffer_->lookupTransform("base_link", "cup", tf2::TimePointZero);
+
         robot_arm_distance_pub_->publish(msg);
+
+        if (is_held_now != cup_is_held_) {
+            cup_is_held_ = is_held_now;
+            std::string new_color = is_held_now ? "0.0 1.0 0.0" : "1.0 0.0 0.0";
+            updateColorInUrdf(this->get_parameter(DEFAULT_CUP_DESC_PARAM_NAME).as_string(), new_color);
+        }
     }
     catch (tf2::TransformException &ex)
     {
         RCLCPP_WARN(this->get_logger(), "%s", ex.what());
     }
+}
+
+void Cup::updateColorInUrdf(const std::string& urdf_content, const std::string& color) {
+
+    std::string updated_urdf = urdf_content;
+
+    std::regex color_rgba_regex(R"(rgba\s*=\s*\"[0-9\.\s]+\")");
+    std::string new_color = "rgba=\"" + color + " 1.0\"";
+    updated_urdf = std::regex_replace(urdf_content, color_rgba_regex, new_color);
+
+    auto msg = std::make_unique<std_msgs::msg::String>();
+    msg->data = updated_urdf;
+    description_pub_->publish(std::move(msg));
 }

@@ -20,6 +20,7 @@ public:
     ~Cup();
 private:
     void initCup(const std::string& urdf_content);
+    void updateColorInUrdf(const std::string& urdf_content, const std::string& color);
     void publishCup();
     void updatePos(const geometry_msgs::msg::TransformStamped::SharedPtr msg);
     void cupIsHeldCb();
@@ -35,6 +36,8 @@ private:
     std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
     std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
     rclcpp::Publisher<geometry_msgs::msg::TransformStamped>::SharedPtr robot_arm_distance_pub_;
+    bool cup_is_held_;
+
 };
 
 #endif // INCLUDE_SIMULATION_CUP_HPP

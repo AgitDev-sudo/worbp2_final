@@ -61,7 +61,6 @@ def generate_launch_description():
                          'cup_pose.pitch': 0.0,
                          'cup_pose.yaw': 0.0,
                          'cup_desc': cup_desc}]
-
         )
     rviz_node = Node(
             package='rviz2',
