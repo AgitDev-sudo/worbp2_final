@@ -140,6 +140,9 @@ ros2 topic pub --once /ssc32u_command std_msgs/msg/String '{data: "#0 P2500 S100
 - ✅ Parameters: `P`, `T`, `S` (combinaties ook)
 - ❌ Alleen `P` wordt niet uitgevoerd
 - ❌ Groupcommands worden genegeerd
+- ✅ Alle servos kunen met een commando gestopt worden (volgens de ssc32u specificatie)
+- ✅ Een enkele servo kan met een commando gestopt worden (volgens de ssc32u specificatie)
+- ✅ Status van arm kan opgevraagd worden (zie paragraaf "Voorbeeld — armstatus opvragen")
 - ❗ Ongeldige commando’s leveren foutmeldingen op
 
 ---
