@@ -17,9 +17,9 @@ ros2 topic pub --once /ssc32u_command std_msgs/msg/String "{data: \"#3 P1500 T20
 sleep 2.1
 
 echo "[4/6] Pols kantelen"
-ros2 topic pub --once /ssc32u_command std_msgs/msg/String "{data: \"#4 P1200 T1000\r\"}"  # pols kantelt naar voren
+ros2 topic pub --once /ssc32u_command std_msgs/msg/String "{data: \"#4 P1200 T1000\r\"}"  # pols kantelt
 sleep 1.1
-ros2 topic pub --once /ssc32u_command std_msgs/msg/String "{data: \"#4 P1500 T1000\r\"}"  # pols kantelt naar voren
+ros2 topic pub --once /ssc32u_command std_msgs/msg/String "{data: \"#4 P1500 T1000\r\"}"  # pols kantelt terug
 sleep 1.1
 
 

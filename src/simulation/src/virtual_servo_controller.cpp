@@ -49,14 +49,14 @@ void VirtualServoController::commandCallback(const std_msgs::msg::String msg)
                 RCLCPP_ERROR(this->get_logger(), "Servo pin 6 is not supported");
                 break;
             }
-            auto it = servo_to_joints.find(servo.pin_);
+            auto it = servo_to_joints_.find(servo.pin_);
             RCLCPP_INFO(this->get_logger(), "Got command for servo %d, pulse width %d", servo.pin_, servo.pulse_width_);
-            if(it != servo_to_joints.end()) {
+            if(it != servo_to_joints_.end()) {
 
                 double desired_rad = pwmToRad(servo.pin_, servo.pulse_width_);
                 
                 const std::string& joint_name = it->second;
-                double current_rad = joints.find(joint_name)->second;
+                double current_rad = joints_.find(joint_name)->second;
                 double time = 0.0;
 
                 if(servo.time_ms_.has_value()) {
@@ -162,20 +162,20 @@ bool VirtualServoController::initJointStates(const std::string& urdf_file)
     {
         RCLCPP_INFO(this->get_logger(), "Got joint: %s", joint.first.c_str());
 
-        joints.insert(std::pair<std::string, double>(joint.first, 0));
+        joints_.insert(std::pair<std::string, double>(joint.first, 0));
     }
 
-    if(servo_to_joints.size() != joints.size())
+    if(servo_to_joints_.size() != joints_.size())
     {
         RCLCPP_ERROR(this->get_logger(), "The number of joints in the URDF file does not match the number of servos");
         return false;
     }
 
     //check if joint names match
-    for (auto const& [servo_pin, joint_name] : servo_to_joints)
+    for (auto const& [servo_pin, joint_name] : servo_to_joints_)
     {
-        auto it = joints.find(joint_name);
-        if(it == joints.end())
+        auto it = joints_.find(joint_name);
+        if(it == joints_.end())
         {
             RCLCPP_ERROR(this->get_logger(), "Joint %s not found in the URDF file", joint_name.c_str());
             return false;
@@ -187,7 +187,7 @@ bool VirtualServoController::initJointStates(const std::string& urdf_file)
 
 void VirtualServoController::publishJointStates()
 {
-    if (this->joints.empty())
+    if (this->joints_.empty())
     {
         RCLCPP_INFO(this->get_logger(), "We won't publish join states, joint states not properly initialzed");
         return;
@@ -195,7 +195,7 @@ void VirtualServoController::publishJointStates()
 
     auto msg = std::make_unique<sensor_msgs::msg::JointState>();
     msg->header.stamp = this->now();
-    for (auto const& [jointName, jointPos] : this->joints)
+    for (auto const& [jointName, jointPos] : this->joints_)
     {
         msg->name.push_back(jointName);
         msg->position.push_back(jointPos);
@@ -205,12 +205,12 @@ void VirtualServoController::publishJointStates()
 
 void VirtualServoController::setDesiredJointState(uint8_t servo_nr, double target_rad, double time_ms) {
     stopServo(servo_nr); // Stop any existing motion for this servo
-    double difference = target_rad - this->joints.at(this->servo_to_joints.at(servo_nr));
+    double difference = target_rad - this->joints_.at(this->servo_to_joints_.at(servo_nr));
     double step = 0;
     if (time_ms != 0 ) {
         step = difference / time_ms;
     } else {
-        this->joints.at(this->servo_to_joints.at(servo_nr)) = target_rad;
+        this->joints_.at(this->servo_to_joints_.at(servo_nr)) = target_rad;
         return;
     }
     
@@ -222,14 +222,14 @@ void VirtualServoController::setDesiredJointState(uint8_t servo_nr, double targe
         moving_joint_threads_[servo_nr].is_moving = true;
         for (int i = 0; i < time_in_ms; i++) {
             if (moving_joint_threads_[servo_nr].stop_requested) {
-                end_pos = this->joints.at(this->servo_to_joints.at(servo_nr));
+                end_pos = this->joints_.at(this->servo_to_joints_.at(servo_nr));
                 break;
             }
-            this->joints.at(this->servo_to_joints.at(servo_nr)) += step;
+            this->joints_.at(this->servo_to_joints_.at(servo_nr)) += step;
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
         
-        this->joints.at(this->servo_to_joints.at(servo_nr)) = end_pos;
+        this->joints_.at(this->servo_to_joints_.at(servo_nr)) = end_pos;
         moving_joint_threads_[servo_nr].is_moving = false;
     };
 

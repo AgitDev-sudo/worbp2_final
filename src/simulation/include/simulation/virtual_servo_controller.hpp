@@ -65,10 +65,10 @@ private:
     rclcpp::TimerBase::SharedPtr joint_state_pub_timer_;
 
     //name of joint and it's position in rad.
-    std::map<std::string, double> joints;
+    std::map<std::string, double> joints_;
     std::map<uint8_t, ActiveMotion> moving_joint_threads_;  // key = servo_nr
 
-    const std::map<uint8_t, std::string> servo_to_joints =
+    const std::map<uint8_t, std::string> servo_to_joints_ =
     {
         {0, "base_link2turret"},
         {1, "turret2upperarm"},
