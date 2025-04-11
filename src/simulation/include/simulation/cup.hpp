@@ -25,6 +25,7 @@ private:
     void updatePos(const geometry_msgs::msg::TransformStamped::SharedPtr msg);
     void cupIsHeldCb();
 
+    bool cup_is_held_;
     rclcpp::TimerBase::SharedPtr cup_publish_timer_;
 
     rclcpp::Publisher<std_msgs::msg::String>::SharedPtr description_pub_;
@@ -36,7 +37,7 @@ private:
     std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
     std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
     rclcpp::Publisher<geometry_msgs::msg::TransformStamped>::SharedPtr robot_arm_distance_pub_;
-    bool cup_is_held_;
+    
 
 };
 

@@ -106,9 +106,7 @@ void Cup::cupIsHeldCb() {
             transform_gripper_right.transform.translation.z < 0.022 &&
             transform_gripper_right.transform.translation.z > 0.02;
 
-        geometry_msgs::msg::TransformStamped msg = is_held_now
-            ? transform_hand
-            : tf_buffer_->lookupTransform("base_link", "cup", tf2::TimePointZero);
+        geometry_msgs::msg::TransformStamped msg = is_held_now ? transform_hand : tf_buffer_->lookupTransform("base_link", "cup", tf2::TimePointZero);
 
         robot_arm_distance_pub_->publish(msg);
 
