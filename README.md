@@ -70,6 +70,8 @@ Een demo in video formaat is [hier te vinden](./demo_videos/demo_robot_arm.webm)
 
 Dezelfde demo met terminal window is [hier](./demo_videos/demo_with_terminal.webm) te vinden.
 
+**De videos zijn in .webm formaat. Download de video's en bekijk het via je browser**
+
 ---
 
 ## 🧩 API & Node-overzicht
