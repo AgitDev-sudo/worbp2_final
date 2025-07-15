@@ -1,9 +1,9 @@
 #!/bin/bash
 
 echo "[1/6] Arm naar bekertje-positie"
-ros2 topic pub --once /ssc32u_command std_msgs/msg/String "{data: \"#1 P750 T2000\r\"}"   # schouder
 ros2 topic pub --once /ssc32u_command std_msgs/msg/String "{data: \"#2 P1050 T2000\r\"}"  # elleboog
 ros2 topic pub --once /ssc32u_command std_msgs/msg/String "{data: \"#3 P1800 T2000\r\"}"  # pols
+ros2 topic pub --once /ssc32u_command std_msgs/msg/String "{data: \"#1 P750 T2000\r\"}"   # schouder
 sleep 2.1
 
 echo "[2/6] Gripper sluiten (bekertje vastpakken)"

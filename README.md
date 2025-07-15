@@ -1,6 +1,14 @@
 # worbp2_final
 
-Een ROS 2-project waarbij een robotarm een kopje oppakt met behulp van `servo commands`. De arm wordt virtueel aangestuurd en gevisualiseerd in RViz.
+Een ROS 2-project waarbij een robotarm een kopje oppakt, kantelt en loslaat met behulp van `servo commands`. De arm wordt virtueel aangestuurd en gevisualiseerd in RViz.
+
+<p align="center">
+   <img src="demo_fotos/1.png" width="22%">
+   <img src="demo_fotos/2.png" width="22%">
+   <img src="demo_fotos/3.png" width="22%">
+   <img src="demo_fotos/4.png" width="22%">
+</p>   
+
 
 ---
 
@@ -57,6 +65,10 @@ source install/setup.bash
    ```
 
 In deze demo zie je hoe de robotarm een kopje oppakt, verplaatst en weer loslaat.
+
+Een demo in video formaat is [hier te vinden](./demo_videos/demo_robot_arm.webm).
+
+Dezelfde demo met terminal window is [hier](./demo_videos/demo_with_terminal.webm) te vinden.
 
 ---
 
